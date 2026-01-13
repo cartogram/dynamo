@@ -2,6 +2,11 @@
 
 import "@crayonai/react-ui/styles/index.css";
 import { useOnAction, useC1State } from "@thesysai/genui-sdk";
+import { useState } from "react";
+
+interface UserPreferences {
+  boldify: boolean;
+}
 
 // TextTranslation component
 // TODO: Move this to a separate file
@@ -21,18 +26,21 @@ export const TextTranslation = ({
   sourceLanguage: string;
   targetLanguage: string;
 }) => {
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>({
+    boldify: false,
+  });
   const onAction = useOnAction();
   const { getValue, setValue } = useC1State("editedTranslatedText");
   const editedTranslatedText = getValue() || translatedText;
-  const handleEditTranslatedText = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    setValue(e.target.value);
-    onAction(
-      "Edit Translated Text",
-      `User edited the translated text to ${e.target.value}`
-    );
-  };
+  // const handleEditTranslatedText = (
+  //   e: React.ChangeEvent<HTMLTextAreaElement>
+  // ) => {
+  //   setValue(e.target.value);
+  //   onAction(
+  //     "Edit Translated Text",
+  //     `User edited the translated text to ${e.target.value}`
+  //   );
+  // };
 
   return (
     <div>
@@ -41,25 +49,59 @@ export const TextTranslation = ({
         {sourceLanguage} to {targetLanguage}.
       </p>
       <p>The original text is {originalText}.</p>
-      <textarea
-        className="w-full h-32 p-2 border border-gray-300 rounded-md"
-        value={editedTranslatedText}
-        onChange={handleEditTranslatedText}
-      />
-      <button
-        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
-        onClick={() =>
-          onAction(
-            "Cancel Translated Text",
-            `User cancelled the edited translated text`
-          )
-        }
-      >
-        Cancel
-      </button>
+
+      <div className="flex flex-col gap-2">
+        <p>
+          {userPreferences.boldify && (
+            <Boldify text={editedTranslatedText as string} />
+          )}
+        </p>
+        {!userPreferences.boldify && <p>{editedTranslatedText}</p>}
+      </div>
+
+      <div className="flex flex-row gap-2">
+        <button
+          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
+          onClick={() =>
+            setUserPreferences({
+              ...userPreferences,
+              boldify: !userPreferences.boldify,
+            })
+          }
+        >
+          Boldify
+        </button>
+        <button
+          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
+          onClick={() =>
+            onAction(
+              "Cancel Translated Text",
+              `User cancelled the edited translated text`
+            )
+          }
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };
+
+// Given a string, boldify the first half of each of the words
+function Boldify({ text }: { text: string }) {
+  const boldByFirstHalf = text.split(" ").map((word) => {
+    const half = Math.floor(word.length / 2);
+    const boldedWord = word.slice(0, half);
+    const unboldedWord = word.slice(half);
+    return (
+      <span key={word}>
+        <b>{boldedWord}</b>
+        {unboldedWord}{" "}
+      </span>
+    );
+  });
+  return boldByFirstHalf;
+}
 
 // Other component examples
 
