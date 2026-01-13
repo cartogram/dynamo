@@ -119,26 +119,25 @@ To integrate a new MCP server:
    import { join } from "path";
 
    export function createMyMCPConfig(): MCPClientConfig {
-     // Use installed package directly instead of npx
+     // Use the binary from node_modules/.bin which has proper module resolution
      const serverPath = join(
        process.cwd(),
        "node_modules",
-       "my-mcp-server",
-       "dist", // or "src", check package.json bin field
-       "index.js"
+       ".bin",
+       "my-mcp-server"
      );
 
      return {
        name: "my-mcp-client",
        version: "1.0.0",
-       serverCommand: "node",
-       serverArgs: [serverPath],
+       serverCommand: serverPath,
+       serverArgs: [],
        env: { MY_API_KEY: process.env.MY_API_KEY }
      };
    }
    ```
 
-   **Important**: Use `node` with the direct path, not `npx`, to avoid runtime package downloads in production.
+   **Important**: Use the binary from `node_modules/.bin/` directory, not `npx`, to avoid runtime package downloads in production. The `.bin` directory contains executables with proper module resolution.
 
 3. Update `route.ts` to use new config:
    ```typescript
@@ -193,10 +192,11 @@ MCP servers using `StdioClientTransport` require:
 
 The API route is configured with `export const runtime = "nodejs"` to ensure compatibility.
 
-**Critical**: The MCP config uses `node` to run the installed package directly from `node_modules` rather than using `npx`. This prevents npm from attempting to download packages at runtime, which would fail in production due to:
-- Lack of write permissions
-- Missing home directory
-- Network restrictions
+**Critical**: The MCP config uses the binary from `node_modules/.bin/` directory rather than using `npx`. This approach:
+- Uses the pre-installed package (installed during build time)
+- Prevents npm from attempting to download packages at runtime
+- Ensures proper module resolution for the MCP server's dependencies
+- Avoids production failures due to lack of write permissions or network restrictions
 
 ### Deployment Platforms
 

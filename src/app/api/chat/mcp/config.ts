@@ -8,20 +8,14 @@ export function createDeepLMCPConfig(): MCPClientConfig {
     throw new Error("DEEPL_API_KEY environment variable is required");
   }
 
-  // Use the installed package directly instead of npx to avoid runtime downloads
-  const serverPath = join(
-    process.cwd(),
-    "node_modules",
-    "deepl-mcp-server",
-    "src",
-    "index.mjs"
-  );
+  // Use the bin entry from node_modules/.bin which has proper module resolution
+  const serverPath = join(process.cwd(), "node_modules", ".bin", "deepl-mcp-server");
 
   return {
     name: "c1-chat-deepl-client",
     version: "1.0.0",
-    serverCommand: "node",
-    serverArgs: [serverPath],
+    serverCommand: serverPath,
+    serverArgs: [],
     env: {
       DEEPL_API_KEY,
     },
