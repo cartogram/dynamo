@@ -165,6 +165,36 @@ To integrate a new MCP server:
 - System prompt must explicitly instruct AI to use custom components
 - All API calls go through Thesys embed endpoint: `https://api.thesys.dev/v1/embed/`
 - Model used: `c1/anthropic/claude-3.7-sonnet/v-20250617`
+- **CRITICAL**: The chat route exports `runtime = "nodejs"` - this is required because stdio-based MCP servers cannot run in edge runtime
+
+## Production Deployment
+
+### Runtime Requirements
+
+MCP servers using `StdioClientTransport` require:
+- **Node.js runtime** (not edge runtime)
+- Ability to spawn child processes
+- `npx` or direct access to MCP server executable
+
+The API route is configured with `export const runtime = "nodejs"` to ensure compatibility.
+
+### Deployment Platforms
+
+**Compatible:**
+- Vercel (Node.js runtime)
+- AWS Lambda
+- Self-hosted Node.js servers
+
+**Not Compatible:**
+- Vercel Edge Functions
+- Cloudflare Workers
+- Any edge/workers runtime that restricts child processes
+
+### Environment Variables in Production
+
+Ensure these are set in your deployment platform:
+- `DEEPL_API_KEY`
+- `THESYS_API_KEY`
 
 ## Testing Translations
 

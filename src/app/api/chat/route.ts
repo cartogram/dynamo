@@ -8,6 +8,10 @@ import { JSONSchema } from "openai/lib/jsonschema.mjs";
 import { transformStream } from "@crayonai/stream";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { z } from "zod";
+
+// Force Node.js runtime (required for MCP stdio transport)
+export const runtime = "nodejs";
+
 // Initialize DeepL MCP client
 const mcpClient = new MCPClient(createDeepLMCPConfig());
 
