@@ -112,25 +112,40 @@ src/app/
 
 To integrate a new MCP server:
 
-1. Create config function in `mcp/config.ts`:
+1. Add the MCP server package to `dependencies` in package.json
+
+2. Create config function in `mcp/config.ts`:
    ```typescript
+   import { join } from "path";
+
    export function createMyMCPConfig(): MCPClientConfig {
+     // Use installed package directly instead of npx
+     const serverPath = join(
+       process.cwd(),
+       "node_modules",
+       "my-mcp-server",
+       "dist", // or "src", check package.json bin field
+       "index.js"
+     );
+
      return {
        name: "my-mcp-client",
        version: "1.0.0",
-       serverCommand: "npx",
-       serverArgs: ["my-mcp-server"],
+       serverCommand: "node",
+       serverArgs: [serverPath],
        env: { MY_API_KEY: process.env.MY_API_KEY }
      };
    }
    ```
 
-2. Update `route.ts` to use new config:
+   **Important**: Use `node` with the direct path, not `npx`, to avoid runtime package downloads in production.
+
+3. Update `route.ts` to use new config:
    ```typescript
    const mcpClient = new MCPClient(createMyMCPConfig());
    ```
 
-3. Update system prompt to explain new tools to the AI
+4. Update system prompt to explain new tools to the AI
 
 ## Creating Custom Components
 
@@ -174,9 +189,14 @@ To integrate a new MCP server:
 MCP servers using `StdioClientTransport` require:
 - **Node.js runtime** (not edge runtime)
 - Ability to spawn child processes
-- `npx` or direct access to MCP server executable
+- MCP server packages must be pre-installed in `node_modules`
 
 The API route is configured with `export const runtime = "nodejs"` to ensure compatibility.
+
+**Critical**: The MCP config uses `node` to run the installed package directly from `node_modules` rather than using `npx`. This prevents npm from attempting to download packages at runtime, which would fail in production due to:
+- Lack of write permissions
+- Missing home directory
+- Network restrictions
 
 ### Deployment Platforms
 
