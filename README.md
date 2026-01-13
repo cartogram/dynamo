@@ -1,24 +1,25 @@
-# MCP with C1 Chat
+# DeepL Translation Chat with C1
 
-This is a [C1 by Thesys](https://thesys.dev) project that demonstrates MCP (Model Context Protocol) server integration with streaming chat capabilities.
+This is a [C1 by Thesys](https://thesys.dev) project that demonstrates MCP (Model Context Protocol) server integration with streaming chat capabilities for translation services.
 
 [![Built with Thesys](https://thesys.dev/built-with-thesys-badge.svg)](https://thesys.dev)
 
 ## Features
 
 - **C1 Chat Integration**: Powered by Thesys C1 for intelligent conversations
-- **MCP Server Support**: Connects to MCP servers to extend AI capabilities with tools
-- **Tool Integration**: Automatically lists and calls tools from connected MCP servers
+- **DeepL MCP Server**: Professional translation via DeepL API through MCP
+- **Tool Integration**: Automatically calls DeepL translation tools from MCP server
 - **Streaming Responses**: Real-time streaming of AI responses
 - **Thinking States**: Visual indicators showing what the AI is doing
-- **File System Operations**: Built-in filesystem access via MCP (no authentication required)
+- **Custom UI Components**: Beautiful custom components for displaying translations
 
 ## Getting Started
 
 ### Prerequisites
 
 You'll need:
-- **Thesys API**: Get your key from [Thesys Console](https://chat.thesys.dev/console/keys)
+- **Thesys API Key**: Get your key from [Thesys Console](https://chat.thesys.dev/console/keys)
+- **DeepL API Key**: Get your key from [DeepL API](https://www.deepl.com/pro-api)
 - **Node.js/pnpm**: For running the development server
 
 ### Environment Variables
@@ -27,6 +28,7 @@ Set up your environment variables:
 
 ```bash
 export THESYS_API_KEY=<your-thesys-api-key>
+export DEEPL_API_KEY=<your-deepl-api-key>
 ```
 
 ### Installation
@@ -49,119 +51,86 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## What You Can Do - Examples
 
-Once the app is running, you can ask the AI to help with various file system tasks. Here are some examples:
+Once the app is running, you can ask the AI to translate text between languages. Here are some examples:
 
-### 📁 **Project Exploration**
+### 🌍 **Basic Translations**
 ```
-"What files are in this project?"
-"Show me the project structure"
-"List all TypeScript files in the src directory"
-"What's in the components folder?"
-"Find all configuration files in this project"
-```
-
-### 📄 **File Analysis**
-```
-"Read and explain the package.json file"
-"What dependencies does this project use?"
-"Show me the TypeScript configuration"
-"What's in the README file?"
-"Analyze the main route file"
+"Translate 'Hello World' to Spanish"
+"Translate 'Good morning' to French"
+"Convert 'Thank you' to German"
+"How do you say 'Welcome' in Italian?"
 ```
 
-### 🔍 **Code Review & Understanding**
+### 📝 **Longer Text Translations**
 ```
-"Explain what the MCP client does"
-"How does the chat route work?"
-"What components are in the app directory?"
-"Show me the API structure"
-"What styling files are used?"
+"Translate this paragraph to Japanese: [your text]"
+"Convert this email to Spanish: [your email text]"
+"Translate this product description to German: [description]"
 ```
 
-### 🏗️ **Development Assistance**
+### 🔄 **Multiple Translations**
 ```
-"Help me understand this Next.js project structure"
-"What environment variables does this app need?"
-"Explain the MCP integration implementation"
-"Show me how thinking states are implemented"
-"What's the difference between route.ts and mcp.ts?"
+"Translate 'Hello' to Spanish, French, and German"
+"Show me 'Good morning' in 5 different languages"
 ```
 
-### 📊 **Project Analysis**
+### 💬 **Conversational Translations**
 ```
-"How many lines of code are in the main files?"
-"What external packages does this project depend on?"
-"Show me all the import statements in the chat route"
-"What API endpoints are available?"
-"Analyze the project's architecture"
-```
-
-### 🐛 **Debugging Help**
-```
-"Check if there are any TODO comments in the code"
-"Show me error handling patterns used"
-"What logging is implemented?"
-"Find all console.log statements"
-"Check for any hardcoded values"
-```
-
-### 🎨 **UI & Styling**
-```
-"What CSS/styling approach is used?"
-"Show me the Tailwind configuration"
-"What UI components are imported?"
-"How is the layout structured?"
-"What fonts and themes are configured?"
+"I need to write a greeting in Spanish"
+"Help me translate this message for my French colleague"
+"What's the best way to say this in German?"
 ```
 
 ## MCP Integration
 
 This project demonstrates how to integrate MCP servers with C1 chat:
 
-1. **MCP Client**: The `MCPClient` class (`src/app/api/chat/mcp.ts`) handles:
-   - Connecting to MCP servers
-   - Listing available tools via `mcp.listTools()`
+1. **MCP Client**: The `MCPClient` class (`src/app/api/chat/mcp/client.ts`) handles:
+   - Connecting to DeepL MCP server
+   - Listing available translation tools via `mcp.listTools()`
    - Running tool calls via `runTools()`
 
 2. **Chat Route**: The API route (`src/app/api/chat/route.ts`) integrates MCP tools:
-   - Connects to MCP server on startup
+   - Connects to DeepL MCP server on startup
    - Passes MCP tools to the OpenAI completion request
    - Handles tool calls seamlessly with thinking states
 
-3. **Tool Execution**: When the AI needs to use tools, the system:
-   - Receives tool calls from the AI model
-   - Executes them via the MCP server
+3. **Tool Execution**: When the AI needs to translate, the system:
+   - Receives translation requests from the AI model
+   - Executes them via the DeepL MCP server
    - Returns results back to the conversation
    - Shows thinking states during execution
+   - Renders results in a custom UI component
 
-## Supported MCP Servers
+## MCP Server Configuration
 
 Currently configured for:
-- **Filesystem Server**: File system operations (read, write, list files) - no authentication required
-- **Fallback Server**: Alternative MCP server if filesystem fails
+- **DeepL MCP Server**: Professional translation services via DeepL API
+
+The server is launched via `npx deepl-mcp-server` with your DeepL API key.
 
 ### Available Tools
 
-The filesystem MCP server provides these tools:
-- `read_file` - Read contents of a specific file
-- `list_directory` - List files and directories
-- `get_file_info` - Get metadata about files
-- `search_files` - Search for files by name or content
+The DeepL MCP server provides translation tools including:
+- `translate-text` - Translate text between languages
+
+## Custom Components
+
+The application includes a custom `TextTranslation` component that provides a polished UI for displaying translation results. The AI automatically uses this component when showing translation results.
 
 ## Thinking States
 
 The system includes visual thinking states that show users:
 - 💭 "Processing your request..." - Initial analysis
-- 💭 "Using tool: read_file" - When accessing files
-- 💭 "Processing results..." - Analyzing tool results
+- 💭 "Using DeepL tool: translate-text" - When translating
+- 💭 "Processing results..." - Preparing the response
 
 ## Tips for Best Results
 
-1. **Be Specific**: Instead of "show me files", try "list all TypeScript files in the src/app directory"
-2. **Ask for Analysis**: Request explanations like "explain what this configuration does"
-3. **Combine Requests**: "Read package.json and explain the main dependencies"
-4. **Request Comparisons**: "Compare the structure of route.ts and mcp.ts"
-5. **Ask for Help**: "Help me understand how the MCP integration works"
+1. **Be Specific**: Specify both the text and target language clearly
+2. **Natural Language**: Ask naturally - "Translate X to Y" or "How do you say X in Y?"
+3. **Multiple Languages**: You can ask for translations to multiple languages at once
+4. **Context**: Provide context for better translations when needed
 
 ## Learn More
 
@@ -169,3 +138,4 @@ The system includes visual thinking states that show users:
 - [Thinking States Guide](https://docs.thesys.dev/guides/thinking-states) - Visual progress indicators
 - [MCP Specification](https://spec.modelcontextprotocol.io/) - Model Context Protocol details
 - [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk) - TypeScript SDK for MCP
+- [DeepL API](https://www.deepl.com/docs-api) - DeepL API documentation
