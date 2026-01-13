@@ -7,8 +7,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "C1 Chat",
-  description: "Generative UI App powered by Thesys C1",
+  title: "Dynamo",
+  description: "AI-powered translation assistant using DeepL",
 };
 
 export default function RootLayout({
