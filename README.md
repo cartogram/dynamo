@@ -24,12 +24,15 @@ You'll need:
 
 ### Environment Variables
 
-Set up your environment variables:
+Copy the example environment file and fill in your API keys:
 
 ```bash
-export THESYS_API_KEY=<your-thesys-api-key>
-export DEEPL_API_KEY=<your-deepl-api-key>
+cp .env.example .env.local
 ```
+
+Then edit `.env.local` and add your API keys:
+- `DEEPL_API_KEY`: Get from [DeepL API](https://www.deepl.com/pro-api)
+- `THESYS_API_KEY`: Get from [Thesys Console](https://chat.thesys.dev/console/keys)
 
 ### Installation
 
