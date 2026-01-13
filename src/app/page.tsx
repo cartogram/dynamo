@@ -1,10 +1,18 @@
 "use client";
 
-import { C1Chat } from "@thesysai/genui-sdk";
 import "@crayonai/react-ui/styles/index.css";
+import { C1Chat, ThemeProvider } from "@thesysai/genui-sdk";
+import { TextTranslation } from "./components";
 
 export default function Home() {
   return (
-    <C1Chat agentName="MCP + C1" apiUrl="/api/chat" theme={{ mode: "dark" }} />
+    <ThemeProvider mode="dark">
+      <C1Chat
+        apiUrl="/api/chat"
+        customizeC1={{
+          customComponents: { TextTranslation },
+        }}
+      />
+    </ThemeProvider>
   );
 }

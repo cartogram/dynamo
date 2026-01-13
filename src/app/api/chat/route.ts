@@ -6,7 +6,8 @@ import { createDeepLMCPConfig } from "./mcp/config";
 import { makeC1Response } from "@thesysai/genui-sdk/server";
 import { JSONSchema } from "openai/lib/jsonschema.mjs";
 import { transformStream } from "@crayonai/stream";
-
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod";
 // Initialize DeepL MCP client
 const mcpClient = new MCPClient(createDeepLMCPConfig());
 
@@ -16,6 +17,25 @@ interface RequestBody {
   responseId: string;
 }
 
+// Zod-based custom component schemas
+const TextTranslationSchema = z
+  .object({
+    originalText: z.string().describe("The original text to display"),
+    translatedText: z.string().describe("The translated text to display"),
+    sourceLanguage: z
+      .string()
+      .describe("The source language name (e.g., 'English', 'Spanish')"),
+    targetLanguage: z
+      .string()
+      .describe("The target language name (e.g., 'French', 'German')"),
+  })
+  .describe(
+    "A custom UI component that displays translated text in a formatted card. Use this component to present translation results after calling the translate-text MCP tool. This provides a better user experience than displaying plain text."
+  );
+
+const CUSTOM_COMPONENT_SCHEMAS = {
+  TextTranslation: zodToJsonSchema(TextTranslationSchema),
+};
 /**
  * Ensure MCP client is connected before processing requests
  */
@@ -30,15 +50,38 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Parse request body
     const { prompt, threadId, responseId } = (await req.json()) as RequestBody;
 
+    const messageStore = getMessageStore(threadId);
+    if (messageStore.getOpenAICompatibleMessageList().length === 0) {
+      messageStore.addMessage({
+        role: "system",
+        content: `You are a translation assistant powered by Thesys C1 and DeepL MCP server.
+
+IMPORTANT INSTRUCTIONS:
+1. When the user asks for a translation, use the DeepL MCP tools (translate-text) to perform the translation
+2. After getting the translation result, ALWAYS render it using the TextTranslation custom component
+3. The TextTranslation component requires these exact props:
+   - originalText: the original text (string)
+   - translatedText: the translated text (string)
+   - sourceLanguage: the source language name (string, e.g., "English", "Spanish")
+   - targetLanguage: the target language name (string, e.g., "French", "German")
+4. Do NOT just display the translation as plain text - you MUST use the TextTranslation component
+
+Example workflow:
+- User: "Translate 'Hello' to Spanish"
+- You call translate-text tool
+- You render the result using TextTranslation component with proper props`,
+      });
+    }
+    // store the user prompt in the message store
+    messageStore.addMessage(prompt as DBMessage);
+
     // Initialize dependencies
     const client = new OpenAI({
       baseURL: "https://api.thesys.dev/v1/embed/",
       apiKey: process.env.THESYS_API_KEY,
     });
-    const messageStore = getMessageStore(threadId);
 
     // Add user message to conversation
-    messageStore.addMessage(prompt);
 
     // Ensure MCP connection is established
     await ensureMCPConnection();
@@ -77,6 +120,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         },
       })),
       stream: true,
+      metadata: {
+        thesys: JSON.stringify({
+          c1_custom_components: CUSTOM_COMPONENT_SCHEMAS,
+        }),
+      },
     });
 
     transformStream(

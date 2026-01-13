@@ -56,7 +56,7 @@ export class MCPClient {
       await this.mcp.connect(this.transport);
 
       const toolsResult = await this.mcp.listTools();
-      this._tools = toolsResult.tools.map((tool) => ({
+      const mcpTools = toolsResult.tools.map((tool) => ({
         type: "function" as const,
         function: {
           name: tool.name,
@@ -64,6 +64,8 @@ export class MCPClient {
           parameters: tool.inputSchema,
         },
       }));
+
+      this._tools = [...mcpTools];
 
       this.isConnected = true;
 
