@@ -50,8 +50,8 @@ The application follows a three-layer MCP integration pattern:
 
 2. **MCP Configuration** (`src/app/api/chat/mcp/config.ts`):
    - `createDeepLMCPConfig()` returns `MCPClientConfig` for server setup
-   - Defines server command, args, and environment variables
-   - Currently configured for DeepL MCP server via `npx deepl-mcp-server`
+   - Points to local `server.mjs` file instead of using npx or node_modules
+   - Passes environment variables (DEEPL_API_KEY) to the MCP server
 
 3. **Chat API Route** (`src/app/api/chat/route.ts`):
    - Singleton MCP client initialized at module level
@@ -99,45 +99,56 @@ The app uses `@crayonai/stream`'s `transformStream()` to handle LLM streaming:
 src/app/
 ├── page.tsx                     # Client component with C1Chat
 ├── layout.tsx                   # Root layout
-├── components.tsx               # Custom UI components (TextTranslation, FlightCard, etc.)
+├── components.tsx               # Custom UI components (TextTranslation)
 └── api/chat/
     ├── route.ts                 # Main chat endpoint (POST handler)
     ├── messageStore.ts          # Thread-based conversation storage
     └── mcp/
         ├── client.ts            # MCPClient class
-        └── config.ts            # MCP server configuration
+        ├── config.ts            # MCP server configuration
+        └── server.mjs           # Local DeepL MCP server (for production compatibility)
 ```
 
 ## Adding New MCP Servers
 
 To integrate a new MCP server:
 
-1. Add the MCP server package to `dependencies` in package.json
+1. **Create a local MCP server file** in `src/app/api/chat/mcp/` (e.g., `my-server.mjs`)
+   - Copy the MCP server implementation from the package's source
+   - This avoids production deployment issues with node_modules resolution
 
 2. Create config function in `mcp/config.ts`:
    ```typescript
    import { join } from "path";
 
    export function createMyMCPConfig(): MCPClientConfig {
-     // Use the binary from node_modules/.bin which has proper module resolution
+     // Use local MCP server file
      const serverPath = join(
        process.cwd(),
-       "node_modules",
-       ".bin",
-       "my-mcp-server"
+       "src",
+       "app",
+       "api",
+       "chat",
+       "mcp",
+       "my-server.mjs"
      );
 
      return {
        name: "my-mcp-client",
        version: "1.0.0",
-       serverCommand: serverPath,
-       serverArgs: [],
+       serverCommand: "node",
+       serverArgs: [serverPath],
        env: { MY_API_KEY: process.env.MY_API_KEY }
      };
    }
    ```
 
-   **Important**: Use the binary from `node_modules/.bin/` directory, not `npx`, to avoid runtime package downloads in production. The `.bin` directory contains executables with proper module resolution.
+   **Why local files?** Production environments often have issues with:
+   - Running `npx` (tries to download at runtime)
+   - Using `node_modules/.bin` (symlinks may not be preserved)
+   - Module resolution when running files directly
+
+   Using a local copy ensures the server code is bundled with your app and works reliably in production.
 
 3. Update `route.ts` to use new config:
    ```typescript
@@ -192,11 +203,13 @@ MCP servers using `StdioClientTransport` require:
 
 The API route is configured with `export const runtime = "nodejs"` to ensure compatibility.
 
-**Critical**: The MCP config uses the binary from `node_modules/.bin/` directory rather than using `npx`. This approach:
-- Uses the pre-installed package (installed during build time)
-- Prevents npm from attempting to download packages at runtime
-- Ensures proper module resolution for the MCP server's dependencies
-- Avoids production failures due to lack of write permissions or network restrictions
+**Critical**: The MCP config uses a local server file (`src/app/api/chat/mcp/server.mjs`) rather than running from `node_modules`. This approach:
+- Bundles the MCP server code directly with your application
+- Avoids production issues with npx, node_modules/.bin, and symlinks
+- Ensures the server code is always available in production
+- Prevents runtime downloads and permission errors
+
+The local `server.mjs` is a copy of the `deepl-mcp-server` package source, ensuring it works reliably in any deployment environment.
 
 ### Deployment Platforms
 

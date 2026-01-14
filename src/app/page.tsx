@@ -8,6 +8,8 @@ export default function Home() {
   return (
     <ThemeProvider mode="dark">
       <C1Chat
+        agentName="Legal Assistant"
+        logoUrl="src/deepl-logo-blue.svg" // You can replace this placeholder with a link to a logo suitable for your AI agent
         apiUrl="/api/chat"
         customizeC1={{
           customComponents: { TextTranslation },
