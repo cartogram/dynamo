@@ -1116,7 +1116,7 @@ const AdaptiveUIDemo = () => {
 
   // Handle accepting auto-suggestion
   const handleAcceptSuggestion = () => {
-    setAdjustments(prev => ({ ...prev, contrastLevel: 0.85 }));
+    setAdjustments(prev => ({ ...prev, contrastLevel: 0.85, sizeScale: 1.2}));
     setShowSuggestion(false);
   };
 
